@@ -1,182 +1,65 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Image Viewer</title>
-
-<style>
-html, body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  background: #111;
-}
-
-#viewer {
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-  overflow: hidden;
-  position: relative;
-}
-
-#stage {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform-origin: 0 0;
-}
-
-img {
-  display: block;
-  max-width: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  pointer-events: none;
-}
-
-.controls {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-}
-
-.controls button {
-  padding: 10px 14px;
-  border: none;
-  border-radius: 8px;
-}
-</style>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3" />
+<title>비밀번호 찾기 안내 | 모나용평</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
 </head>
-
 <body>
 
-<div id="viewer">
-  <div id="stage">
-    <!-- 🔥 파일명 바꿔 -->
-    <img src="UX.jpg" id="image">
+<section id="landing">
+  <div class="land-title">비밀번호를<br>잊으셨나요?</div>
+  <div class="land-sub">이용 환경에 맞는 절차를 선택해<br>비밀번호를 재설정할 수 있습니다</div>
+  <div class="land-q">현재 어떤 환경에서 이용 중이신가요?</div>
+  <div class="choice-grid">
+    <button type="button" class="choice-btn" data-go="app">
+      <div class="choice-icon"><img src="images/logo/mona_app.jpg" alt="모나 앱"></div>
+      <div><div class="choice-name">모바일 앱</div><div class="choice-desc">스마트폰에 앱 설치</div></div>
+      <div class="choice-arrow">›</div>
+    </button>
+    <button type="button" class="choice-btn" data-go="mweb">
+      <div class="choice-icon"><span>M/W</span></div>
+      <div><div class="choice-name">모바일 웹</div><div class="choice-desc">스마트폰 브라우저로 접속</div></div>
+      <div class="choice-arrow">›</div>
+    </button>
+    <button type="button" class="choice-btn" data-go="web">
+      <div class="choice-icon"><span>PC</span></div>
+      <div><div class="choice-name">홈페이지 (PC)</div><div class="choice-desc">컴퓨터로 yongpyong.co.kr</div></div>
+      <div class="choice-arrow">›</div>
+    </button>
   </div>
-</div>
-
-<div class="controls">
-  <button onclick="zoomAtCenter(1.2)">+</button>
-  <button onclick="zoomAtCenter(0.8)">-</button>
-  <button onclick="resetView()">Reset</button>
-</div>
-
-<script>
-const viewer = document.getElementById("viewer");
-const stage = document.getElementById("stage");
-
-let scale = 1;
-let posX = 0;
-let posY = 0;
-
-let isDragging = false;
-let startX, startY;
-
-let lastDist = null;
-let lastTap = 0;
-
-/* 업데이트 */
-function update() {
-  stage.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-}
-
-/* 중심 기준 줌 */
-function zoom(factor, centerX, centerY) {
-  const rect = viewer.getBoundingClientRect();
-
-  const x = (centerX - rect.left - posX) / scale;
-  const y = (centerY - rect.top - posY) / scale;
-
-  scale *= factor;
-
-  posX = centerX - rect.left - x * scale;
-  posY = centerY - rect.top - y * scale;
-
-  update();
-}
-
-function zoomAtCenter(factor) {
-  zoom(factor, window.innerWidth / 2, window.innerHeight / 2);
-}
-
-function resetView() {
-  scale = 1;
-  posX = 0;
-  posY = 0;
-  update();
-}
-
-/* 터치 시작 */
-viewer.addEventListener("touchstart", (e) => {
-  const now = Date.now();
-
-  // 더블탭 줌
-  if (now - lastTap < 300) {
-    zoom(1.5, e.touches[0].clientX, e.touches[0].clientY);
-  }
-  lastTap = now;
-
-  if (e.touches.length === 1) {
-    isDragging = true;
-    startX = e.touches[0].clientX - posX;
-    startY = e.touches[0].clientY - posY;
-  }
-
-  if (e.touches.length === 2) {
-    isDragging = false;
-
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    lastDist = Math.sqrt(dx * dx + dy * dy);
-  }
-});
-
-/* 터치 이동 */
-viewer.addEventListener("touchmove", (e) => {
-
-  // 드래그
-  if (e.touches.length === 1 && isDragging) {
-    posX = e.touches[0].clientX - startX;
-    posY = e.touches[0].clientY - startY;
-    update();
-  }
-
-  // 핀치 줌 (중심 기준)
-  if (e.touches.length === 2) {
-    const t1 = e.touches[0];
-    const t2 = e.touches[1];
-
-    const dx = t1.clientX - t2.clientX;
-    const dy = t1.clientY - t2.clientY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    const centerX = (t1.clientX + t2.clientX) / 2;
-    const centerY = (t1.clientY + t2.clientY) / 2;
-
-    if (lastDist) {
-      const factor = dist / lastDist;
-      zoom(factor, centerX, centerY);
-    }
-
-    lastDist = dist;
-  }
-});
-
-/* 터치 끝 */
-viewer.addEventListener("touchend", () => {
-  isDragging = false;
-  lastDist = null;
-});
-</script>
-
+</section>
+<section id="manual">
+  <header class="top">
+    <div class="top-row">
+      <button type="button" class="back" id="back">←</button>
+      <div class="hdr">
+        <img src="images/logo/mona_app.jpg" alt="모나용평" onerror="this.style.display='none'">
+        <span>비밀번호 찾기 안내</span>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button type="button" class="tab on" data-tab="app"><span class="t"><img src="images/logo/mona_app.jpg" alt=""></span>모바일 앱</button>
+      <button type="button" class="tab" data-tab="mweb"><span class="t">M/W</span>모바일 웹</button>
+      <button type="button" class="tab" data-tab="web"><span class="t">PC</span>홈페이지(PC)</button>
+    </nav>
+  </header>
+  <div class="notice"><p>표시된 영역을 순서대로 확인해 진행해 주세요.</p></div>
+  <div class="wrap">
+    <div id="flowTitle" class="flow-title"></div>
+    <div id="flowRoot"></div>
+    <div class="help">
+      <h3>고객센터 안내</h3>
+      <p>진행이 어려운 경우 고객센터로 문의해 주세요.</p>
+      <a href="tel:033-330-8506">033-330-8506</a>
+    </div>
+    <div class="footer">© MONAYongPyong · 고객센터 033-330-8506</div>
+  </div>
+</section>
+<script src="js/app.js"></script>
 </body>
 </html>
